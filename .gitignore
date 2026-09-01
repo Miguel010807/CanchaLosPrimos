@@ -1,0 +1,21 @@
+# Entornos virtuales
+backend/venv/
+venv/
+env/
+.venv/
+
+# Variables de entorno y secretos
+.env
+backend/.env
+.env.local
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Frontend / Node
+node_modules/
+dist/
+build/
+
