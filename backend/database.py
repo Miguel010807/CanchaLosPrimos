@@ -1,14 +1,7 @@
-import pymysql
-from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
-
+import psycop2
+from psycop2.extras import RealDictCursor
+from config import DATABASE_URL
 
 def get_connection():
-    return pymysql.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        database=DB_NAME,
-        cursorclass=pymysql.cursors.DictCursor
-    )
+    return psycop2.connect(DATABASE_URL, cursos_factory=RealDictCursor)
 
