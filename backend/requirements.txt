@@ -1,8 +1,9 @@
 Flask
 Flask-CORS
-PyMySQL
+psycopg2-binary
 python-dotenv
 PyJWT
 qrcode
 Pillow
+gunicorn
 
