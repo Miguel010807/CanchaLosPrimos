@@ -1,4 +1,3 @@
-
 """
 Rutas para crear reservas y ver "Mis Turnos".
 
@@ -22,6 +21,7 @@ from servicios.reservas import (
     ErrorDeReserva,
     bloquearCanchaMientrasSeReserva,
     buscarPrecioDelHorario,
+    esUnRangoDeHorasValido,
     guardarReservaPendiente,
     verificarQueElTurnoEsteLibre,
 )
@@ -46,7 +46,7 @@ def crearReserva():
         )
     if esUnaFechaPasada(fecha):
         return responderConError("No se puede reservar en una fecha que ya pasó")
-    if horaInicio >= horaFin:
+    if not esUnRangoDeHorasValido(horaInicio, horaFin):
         return responderConError("La hora de inicio tiene que ser antes que la de fin")
 
     try:

@@ -8,7 +8,11 @@ from flask import Blueprint, request
 
 from database import usarBaseDeDatos
 from servicios.fechas import convertirTextoAFecha, obtenerNumeroDeDiaDeLaSemana
-from servicios.reservas import ESTADO_RESERVA_CANCELADA
+from servicios.reservas import (
+    ESTADO_RESERVA_CANCELADA,
+    FIN_DE_TURNO_DE_LA_RESERVA,
+    FIN_DE_TURNO_DEL_HORARIO,
+)
 from servicios.respuestas import responderConError, responderConExito
 
 rutasDeCanchas = Blueprint("rutasDeCanchas", __name__, url_prefix="/api/canchas")
@@ -40,51 +44,44 @@ def consultarDisponibilidadDeCancha(idCancha):
         return responderConError("Mandá la fecha así: ?fecha=AAAA-MM-DD")
 
     with usarBaseDeDatos() as cursor:
-        horariosDelDia = buscarHorariosDelDia(cursor, idCancha, fechaBuscada)
-        reservasDelDia = buscarReservasDelDia(cursor, idCancha, fechaBuscada)
+        turnosDelDia = buscarTurnosDelDiaConSuEstado(cursor, idCancha, fechaBuscada)
 
     turnos = [
         {
-            "hora_inicio": horario["hora_inicio"],
-            "hora_fin": horario["hora_fin"],
-            "precio": horario["precio"],
-            "estado": "Ocupada" if estaOcupado(horario, reservasDelDia) else "Libre",
+            "hora_inicio": turno["hora_inicio"],
+            "hora_fin": turno["hora_fin"],
+            "precio": turno["precio"],
+            "estado": "Ocupada" if turno["esta_ocupado"] else "Libre",
         }
-        for horario in horariosDelDia
+        for turno in turnosDelDia
     ]
 
     return responderConExito({"cancha_id": idCancha, "fecha": fechaBuscada, "turnos": turnos})
 
 
-def buscarHorariosDelDia(cursor, idCancha, fecha):
+def buscarTurnosDelDiaConSuEstado(cursor, idCancha, fecha):
+    """
+    Trae los horarios de la cancha para ese día de la semana y, para cada uno,
+    si ya hay una reserva (no cancelada) que lo ocupa.
+    """
     cursor.execute(
-        """
-        SELECT hora_inicio, hora_fin, precio
+        f"""
+        SELECT horarios.hora_inicio, horarios.hora_fin, horarios.precio,
+               EXISTS (
+                   SELECT 1 FROM reservas
+                   WHERE reservas.cancha_id = horarios.cancha_id
+                     AND reservas.fecha = %s
+                     AND reservas.estado <> %s
+                     AND reservas.hora_inicio < {FIN_DE_TURNO_DEL_HORARIO}
+                     AND {FIN_DE_TURNO_DE_LA_RESERVA} > horarios.hora_inicio
+               ) AS esta_ocupado
         FROM horarios
-        WHERE cancha_id = %s AND dia_semana = %s AND activo = TRUE
-        ORDER BY hora_inicio
+        WHERE horarios.cancha_id = %s AND horarios.dia_semana = %s AND horarios.activo = TRUE
+        ORDER BY horarios.hora_inicio
         """,
-        (idCancha, obtenerNumeroDeDiaDeLaSemana(fecha)),
+        (fecha, ESTADO_RESERVA_CANCELADA, idCancha, obtenerNumeroDeDiaDeLaSemana(fecha)),
     )
     return cursor.fetchall()
 
 
-def buscarReservasDelDia(cursor, idCancha, fecha):
-    cursor.execute(
-        """
-        SELECT hora_inicio, hora_fin
-        FROM reservas
-        WHERE cancha_id = %s AND fecha = %s AND estado <> %s
-        """,
-        (idCancha, fecha, ESTADO_RESERVA_CANCELADA),
-    )
-    return cursor.fetchall()
-
-
-def estaOcupado(horario, reservas):
-    """Un horario está ocupado si alguna reserva se superpone con él."""
-    return any(
-        reserva["hora_inicio"] < horario["hora_fin"] and reserva["hora_fin"] > horario["hora_inicio"]
-        for reserva in reservas
-    )
 

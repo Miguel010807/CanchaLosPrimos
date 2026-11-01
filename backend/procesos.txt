@@ -1,0 +1,7 @@
+Correr el "app.py" desde la pc main
+
+  cd Documents/CanchasLosPrimos/backend
+  source venv/bin/activate
+  python app.py
+
+
