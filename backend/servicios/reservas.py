@@ -1,7 +1,7 @@
 """
 Reglas de negocio de las reservas (lo que se puede y no se puede hacer).
 """
-from datetime import time
+from datetime import date, time
 
 # Estados posibles de una reserva (columna reservas.estado)
 ESTADO_RESERVA_PENDIENTE = "pendiente"
@@ -83,3 +83,58 @@ def guardarReservaPendiente(cursor, idUsuario, idCancha, fecha, horaInicio, hora
         (idUsuario, idCancha, fecha, horaInicio, horaFin, ESTADO_RESERVA_PENDIENTE, precio),
     )
     return cursor.fetchone()
+
+
+# ---------------------------------------------------------------------
+# Cancelar reservas
+# ---------------------------------------------------------------------
+
+ESTADOS_QUE_SE_PUEDEN_CANCELAR = (ESTADO_RESERVA_PENDIENTE, ESTADO_RESERVA_CONFIRMADA)
+
+
+def buscarReservaDelUsuario(cursor, idReserva, idUsuario):
+    """Trae la reserva y la bloquea, pero solo si es de ese usuario."""
+    cursor.execute(
+        """
+        SELECT id, estado, fecha
+        FROM reservas
+        WHERE id = %s AND usuario_id = %s
+        FOR UPDATE
+        """,
+        (idReserva, idUsuario),
+    )
+    reserva = cursor.fetchone()
+    if reserva is None:
+        raise ErrorDeReserva("No encontramos esa reserva en tus turnos")
+    return reserva
+
+
+def verificarQueSePuedaCancelar(reserva):
+    if reserva["estado"] not in ESTADOS_QUE_SE_PUEDEN_CANCELAR:
+        raise ErrorDeReserva(f"Esta reserva no se puede cancelar porque está {reserva['estado']}")
+    if reserva["fecha"] < date.today():
+        raise ErrorDeReserva("No se puede cancelar un turno que ya pasó")
+
+
+def marcarReservaComoCancelada(cursor, idReserva, motivo):
+    """Cambia el estado a 'cancelada' y deja registrado el motivo (no se borra, queda el historial)."""
+    cursor.execute(
+        """
+        UPDATE reservas
+        SET estado = %s, fecha_actualizacion = NOW()
+        WHERE id = %s
+        RETURNING id, cancha_id, fecha, hora_inicio, hora_fin, estado, precio
+        """,
+        (ESTADO_RESERVA_CANCELADA, idReserva),
+    )
+    reservaCancelada = cursor.fetchone()
+
+    cursor.execute(
+        """
+        INSERT INTO reservas_cancelaciones (reserva_id, motivo, fecha_cancelacion)
+        VALUES (%s, %s, NOW())
+        """,
+        (idReserva, motivo),
+    )
+    return reservaCancelada
+

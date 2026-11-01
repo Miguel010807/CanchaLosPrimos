@@ -1,6 +1,17 @@
+import { useState } from 'react'
 import './App.css'
+import ListaDeCanchas from './componentes/ListaDeCanchas'
+import MisTurnos from './componentes/MisTurnos'
 
 function App() {
+  // Cada vez que se reserva o cancela, este número sube.
+  // Así "Horarios" y "Mis turnos" saben que tienen que actualizarse.
+  const [cantidadDeCambios, setCantidadDeCambios] = useState(0)
+
+  function avisarQueCambiaronLasReservas() {
+    setCantidadDeCambios((cantidadAnterior) => cantidadAnterior + 1)
+  }
+
   return (
     <div>
       <header>
@@ -9,6 +20,7 @@ function App() {
         <nav>
           <a href="#inicio">Inicio</a>
           <a href="#canchas">Canchas</a>
+          <a href="#mis-turnos">Mis turnos</a>
           <a href="#ubicacion">Ubicación</a>
           <a href="#contacto">Contacto</a>
           <button>Iniciar sesión</button>
@@ -17,7 +29,7 @@ function App() {
 
       <main>
         <section id="inicio">
-          <h2>Fútbol 5 Los Primos</h2>
+          <h2>Fútbol Los Primos</h2>
           <p>Reservá tu cancha de manera rápida y sencilla.</p>
 
           <button>Reservar cancha</button>
@@ -26,34 +38,36 @@ function App() {
         <section id="canchas">
           <h2>Nuestras canchas</h2>
 
-          <div>
-            <article>
-              <h3>Cancha 1</h3>
-              <p>Fútbol 5 · Césped sintético</p>
-              <button>Ver horarios</button>
-            </article>
+          {/* Las canchas ahora vienen de la base de datos */}
+          <ListaDeCanchas
+            cantidadDeCambios={cantidadDeCambios}
+            alCambiarLasReservas={avisarQueCambiaronLasReservas}
+          />
+        </section>
 
-            <article>
-              <h3>Cancha 2</h3>
-              <p>Fútbol 5 · Césped sintético</p>
-              <button>Ver horarios</button>
-            </article>
-          </div>
+        <section id="mis-turnos">
+          <h2>Mis turnos</h2>
+
+          <MisTurnos
+            cantidadDeCambios={cantidadDeCambios}
+            alCambiarLasReservas={avisarQueCambiaronLasReservas}
+          />
         </section>
 
         <section id="ubicacion">
           <h2>¿Dónde estamos?</h2>
-          <p>Encontranos en Los Primos.</p>
+          <p>Av. Larrazábal 4365, CABA</p>
         </section>
 
         <section id="contacto">
           <h2>Contacto</h2>
           <p>¿Tenés alguna consulta? Comunicate con nosotros.</p>
+          <p>📞 11 3385-8925</p>
         </section>
       </main>
 
       <footer>
-        <p>© 2026 Los Primos - Fútbol 5</p>
+        <p>© 2026 Los Primos - Fútbol 5 y Fútbol 4</p>
       </footer>
     </div>
   )

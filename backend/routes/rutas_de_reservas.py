@@ -3,6 +3,7 @@ Rutas para crear reservas y ver "Mis Turnos".
 
   POST /api/reservas                     -> crea una reserva en estado Pendiente
   GET  /api/usuarios/<id>/reservas       -> lista de turnos del usuario (Mis Turnos)
+  POST /api/reservas/<id>/cancelar       -> cancela una reserva del usuario
 
 IMPORTANTE (temporal): por ahora el id del usuario viene en el pedido.
 Cuando hagamos el login, lo vamos a sacar del token de sesión,
@@ -21,9 +22,12 @@ from servicios.reservas import (
     ErrorDeReserva,
     bloquearCanchaMientrasSeReserva,
     buscarPrecioDelHorario,
+    buscarReservaDelUsuario,
     esUnRangoDeHorasValido,
     guardarReservaPendiente,
+    marcarReservaComoCancelada,
     verificarQueElTurnoEsteLibre,
+    verificarQueSePuedaCancelar,
 )
 from servicios.respuestas import responderConError, responderConExito
 
@@ -63,6 +67,26 @@ def crearReserva():
         return responderConError(str(error), codigoHttp=409)
 
     return responderConExito(reservaNueva, codigoHttp=201)
+
+@rutasDeReservas.post("/reservas/<int:idReserva>/cancelar")
+def cancelarReserva(idReserva):
+    datosRecibidos = request.get_json(silent=True) or {}
+
+    idUsuario = datosRecibidos.get("usuario_id")
+    motivo = datosRecibidos.get("motivo")  # opcional
+
+    if not idUsuario:
+        return responderConError("Falta el usuario_id")
+
+    try:
+        with usarBaseDeDatos() as cursor:
+            reserva = buscarReservaDelUsuario(cursor, idReserva, idUsuario)
+            verificarQueSePuedaCancelar(reserva)
+            reservaCancelada = marcarReservaComoCancelada(cursor, idReserva, motivo)
+    except ErrorDeReserva as error:
+        return responderConError(str(error), codigoHttp=409)
+
+    return responderConExito(reservaCancelada)
 
 
 @rutasDeReservas.get("/usuarios/<int:idUsuario>/reservas")
