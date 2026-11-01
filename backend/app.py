@@ -2,6 +2,7 @@ import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from database import get_connection
+from config import FRONTEND_URL
 
 app = Flask(__name__)
 CORS(app, origins=os.getenv("FRONTEND_URL", "http://localhost:5173"))

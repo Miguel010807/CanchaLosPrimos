@@ -6,7 +6,7 @@ Rutas para consultar las canchas y su disponibilidad.
 """
 from flask import Blueprint, request
 
-from base_de_datos import usarBaseDeDatos
+from database import usarBaseDeDatos
 from servicios.fechas import convertirTextoAFecha, obtenerNumeroDeDiaDeLaSemana
 from servicios.reservas import ESTADO_RESERVA_CANCELADA
 from servicios.respuestas import responderConError, responderConExito

@@ -7,7 +7,7 @@ Rutas para chequear que el servidor y la base de datos funcionan.
 """
 from flask import Blueprint
 
-from base_de_datos import usarBaseDeDatos
+from database import usarBaseDeDatos
 from servicios.respuestas import responderConError, responderConExito
 
 rutasDeEstado = Blueprint("rutasDeEstado", __name__, url_prefix="/api")

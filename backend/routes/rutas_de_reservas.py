@@ -11,7 +11,7 @@ así nadie puede reservar o ver turnos a nombre de otro.
 """
 from flask import Blueprint, request
 
-from base_de_datos import usarBaseDeDatos
+from database import usarBaseDeDatos
 from servicios.fechas import (
     convertirTextoAFecha,
     convertirTextoAHora,
