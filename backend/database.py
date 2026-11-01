@@ -16,7 +16,7 @@ def CrearConexionALaBaseDeDatos():
 
 @contextmanager
 def usarBaseDeDatos():
-    conexion = get_connection()
+    conexion = CrearConexionALaBaseDeDatos()
     try:
         with conexion.cursor() as cursor:
             yield cursor

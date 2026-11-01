@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
-from database import get_connection
+from database import CrearConexionALaBaseDeDatos
 from config import FRONTEND_URL
 
 app = Flask(__name__)
@@ -17,7 +17,7 @@ def health():
 def db_test():
     """Prueba la conexión a Supabase y lista las tablas del schema public."""
     try:
-        with get_connection() as conn, conn.cursor() as cur:
+        with CrearConexionALaBaseDeDatos() as conn, conn.cursor() as cur:
             cur.execute(
                 "SELECT table_name FROM information_schema.tables "
                 "WHERE table_schema = 'public' ORDER BY table_name"
