@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { crearReserva, obtenerDisponibilidad } from '../servicios/api'
 import { formatearFecha, formatearPrecio, obtenerFechaDeHoy } from '../servicios/formatos'
-import { ID_DEL_USUARIO_DE_PRUEBA } from '../servicios/sesion'
+import { usarSesion } from '../servicios/sesion'
+import IniciarSesion from './IniciarSesion'
 
 /**
  * Muestra los turnos de una cancha para el día elegido (Libre / Ocupada).
  * Para reservar, primero pide confirmación.
+ * Si no inició sesión, le pide iniciarla ahí mismo y después vuelve al mismo turno.
  */
 function HorariosDeCancha({ cancha, cantidadDeCambios, alCambiarLasReservas }) {
   const [fechaElegida, setFechaElegida] = useState(obtenerFechaDeHoy())
@@ -13,6 +15,7 @@ function HorariosDeCancha({ cancha, cantidadDeCambios, alCambiarLasReservas }) {
   const [estaCargando, setEstaCargando] = useState(true)
   const [mensaje, setMensaje] = useState(null)
   const [turnoParaConfirmar, setTurnoParaConfirmar] = useState(null)
+  const sesion = usarSesion()
 
   // Se vuelven a pedir los turnos si cambia la fecha o si alguien reservó/canceló
   useEffect(() => {
@@ -34,7 +37,6 @@ function HorariosDeCancha({ cancha, cantidadDeCambios, alCambiarLasReservas }) {
     setTurnoParaConfirmar(null)
     try {
       await crearReserva({
-        usuario_id: ID_DEL_USUARIO_DE_PRUEBA,
         cancha_id: cancha.id,
         fecha: fechaElegida,
         hora_inicio: turno.hora_inicio,
@@ -61,7 +63,17 @@ function HorariosDeCancha({ cancha, cantidadDeCambios, alCambiarLasReservas }) {
 
       {mensaje && <p>{mensaje}</p>}
 
-      {turnoParaConfirmar && (
+      {turnoParaConfirmar && !sesion && (
+        <div>
+          <p>Para reservar tenés que iniciar sesión.</p>
+          <IniciarSesion
+            alCerrar={() => setTurnoParaConfirmar(null)}
+            alIniciarSesion={() => {}} // no hace nada: al haber sesión, aparece solo la confirmación del mismo turno
+          />
+        </div>
+      )}
+
+      {turnoParaConfirmar && sesion && (
         <div>
           <p>
             ¿Reservar <strong>{cancha.nombre}</strong> el {formatearFecha(fechaElegida)} de{' '}

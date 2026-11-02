@@ -1,9 +1,30 @@
-
 /**
- * Datos de la sesión del usuario.
+ * Sesión del usuario (login con Supabase Auth).
  *
- * TEMPORAL: hasta que hagamos el login, todas las acciones se hacen
- * con el usuario de prueba. Cuando exista el login, este archivo
- * va a devolver el usuario que inició sesión de verdad.
+ * usarSesion() se puede usar en cualquier componente:
+ *     const sesion = usarSesion()
+ *     if (sesion) { ...está logueado... }
  */
-export const ID_DEL_USUARIO_DE_PRUEBA = 1
+import { useEffect, useState } from 'react'
+import { supabase } from './supabase'
+
+export function usarSesion() {
+  const [sesion, setSesion] = useState(null)
+
+  useEffect(() => {
+    // Al abrir la página: ¿ya había una sesión iniciada?
+    supabase.auth.getSession().then(({ data }) => setSesion(data.session))
+
+    // Después: se entera cada vez que alguien inicia o cierra sesión
+    const { data } = supabase.auth.onAuthStateChange((_evento, sesionNueva) => {
+      setSesion(sesionNueva)
+    })
+    return () => data.subscription.unsubscribe()
+  }, [])
+
+  return sesion
+}
+
+export function cerrarSesion() {
+  return supabase.auth.signOut()
+}

@@ -1,17 +1,18 @@
 """
 Rutas para crear reservas y ver "Mis Turnos".
+Todas tienen candado: solo funcionan con la sesión iniciada.
 
-  POST /api/reservas                     -> crea una reserva en estado Pendiente
-  GET  /api/usuarios/<id>/reservas       -> lista de turnos del usuario (Mis Turnos)
-  POST /api/reservas/<id>/cancelar       -> cancela una reserva del usuario
+  POST /api/reservas                  -> crea una reserva en estado Pendiente
+  POST /api/reservas/<id>/cancelar    -> cancela una reserva propia
+  GET  /api/mis-reservas              -> lista de turnos del usuario (Mis Turnos)
 
-IMPORTANTE (temporal): por ahora el id del usuario viene en el pedido.
-Cuando hagamos el login, lo vamos a sacar del token de sesión,
-así nadie puede reservar o ver turnos a nombre de otro.
+El usuario NO viene en el pedido: sale de la sesión (g.usuarioActual),
+así nadie puede reservar, cancelar ni ver turnos a nombre de otro.
 """
-from flask import Blueprint, request
+from flask import Blueprint, g, request
 
 from database import usarBaseDeDatos
+from servicios.autenticacion import requiereSesion
 from servicios.fechas import (
     convertirTextoAFecha,
     convertirTextoAHora,
@@ -35,18 +36,19 @@ rutasDeReservas = Blueprint("rutasDeReservas", __name__, url_prefix="/api")
 
 
 @rutasDeReservas.post("/reservas")
+@requiereSesion
 def crearReserva():
     datosRecibidos = request.get_json(silent=True) or {}
 
-    idUsuario = datosRecibidos.get("usuario_id")
+    idUsuario = g.usuarioActual["id"]
     idCancha = datosRecibidos.get("cancha_id")
     fecha = convertirTextoAFecha(datosRecibidos.get("fecha"))
     horaInicio = convertirTextoAHora(datosRecibidos.get("hora_inicio"))
     horaFin = convertirTextoAHora(datosRecibidos.get("hora_fin"))
 
-    if not all([idUsuario, idCancha, fecha, horaInicio, horaFin]):
+    if not all([idCancha, fecha, horaInicio, horaFin]):
         return responderConError(
-            "Faltan datos. Mandá: usuario_id, cancha_id, fecha (AAAA-MM-DD), hora_inicio y hora_fin (HH:MM)"
+            "Faltan datos. Mandá: cancha_id, fecha (AAAA-MM-DD), hora_inicio y hora_fin (HH:MM)"
         )
     if esUnaFechaPasada(fecha):
         return responderConError("No se puede reservar en una fecha que ya pasó")
@@ -68,19 +70,16 @@ def crearReserva():
 
     return responderConExito(reservaNueva, codigoHttp=201)
 
+
 @rutasDeReservas.post("/reservas/<int:idReserva>/cancelar")
+@requiereSesion
 def cancelarReserva(idReserva):
     datosRecibidos = request.get_json(silent=True) or {}
-
-    idUsuario = datosRecibidos.get("usuario_id")
     motivo = datosRecibidos.get("motivo")  # opcional
-
-    if not idUsuario:
-        return responderConError("Falta el usuario_id")
 
     try:
         with usarBaseDeDatos() as cursor:
-            reserva = buscarReservaDelUsuario(cursor, idReserva, idUsuario)
+            reserva = buscarReservaDelUsuario(cursor, idReserva, g.usuarioActual["id"])
             verificarQueSePuedaCancelar(reserva)
             reservaCancelada = marcarReservaComoCancelada(cursor, idReserva, motivo)
     except ErrorDeReserva as error:
@@ -89,8 +88,9 @@ def cancelarReserva(idReserva):
     return responderConExito(reservaCancelada)
 
 
-@rutasDeReservas.get("/usuarios/<int:idUsuario>/reservas")
-def listarMisTurnos(idUsuario):
+@rutasDeReservas.get("/mis-reservas")
+@requiereSesion
+def listarMisTurnos():
     with usarBaseDeDatos() as cursor:
         cursor.execute(
             """
@@ -101,7 +101,7 @@ def listarMisTurnos(idUsuario):
             WHERE reservas.usuario_id = %s
             ORDER BY reservas.fecha DESC, reservas.hora_inicio DESC
             """,
-            (idUsuario,),
+            (g.usuarioActual["id"],),
         )
         misTurnos = cursor.fetchall()
 

@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import './App.css'
 import IniciarSesion from './componentes/IniciarSesion'
 import ListaDeCanchas from './componentes/ListaDeCanchas'
 import MisTurnos from './componentes/MisTurnos'
-import { supabase } from './servicios/supabase'
+import { cerrarSesion, usarSesion } from './servicios/sesion'
 
 function App() {
   // Cada vez que se reserva o cancela, este número sube.
@@ -11,23 +11,8 @@ function App() {
   const [cantidadDeCambios, setCantidadDeCambios] = useState(0)
 
   // Sesión del usuario: null = no inició sesión
-  const [sesion, setSesion] = useState(null)
+  const sesion = usarSesion()
   const [mostrarLogin, setMostrarLogin] = useState(false)
-
-  // Al abrir la página, se fija si ya había una sesión iniciada,
-  // y se queda escuchando cuando alguien inicia o cierra sesión
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSesion(data.session))
-
-    const { data } = supabase.auth.onAuthStateChange((_evento, sesionNueva) => {
-      setSesion(sesionNueva)
-    })
-    return () => data.subscription.unsubscribe()
-  }, [])
-
-  function cerrarSesion() {
-    supabase.auth.signOut()
-  }
 
   function avisarQueCambiaronLasReservas() {
     setCantidadDeCambios((cantidadAnterior) => cantidadAnterior + 1)

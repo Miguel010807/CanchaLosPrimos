@@ -6,7 +6,7 @@ import { supabase } from '../servicios/supabase'
  *   1) el usuario escribe su email  -> Supabase le manda un código
  *   2) escribe el código            -> queda logueado
  */
-function IniciarSesion({ alCerrar }) {
+function IniciarSesion({ alCerrar, alIniciarSesion }) {
   const [email, setEmail] = useState('')
   const [codigo, setCodigo] = useState('')
   const [yaSeEnvioElCodigo, setYaSeEnvioElCodigo] = useState(false)
@@ -41,7 +41,13 @@ function IniciarSesion({ alCerrar }) {
       setMensaje('El código es incorrecto o venció. Probá de nuevo.')
       return
     }
-    alCerrar() // logueado: se cierra la ventana de login
+    // Logueado: si quien la abrió quiere hacer algo después (ej: volver al turno), lo hace;
+    // si no, simplemente se cierra la ventana de login
+    if (alIniciarSesion) {
+      alIniciarSesion()
+    } else {
+      alCerrar()
+    }
   }
 
   return (
