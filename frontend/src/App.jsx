@@ -1,12 +1,33 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
+import IniciarSesion from './componentes/IniciarSesion'
 import ListaDeCanchas from './componentes/ListaDeCanchas'
 import MisTurnos from './componentes/MisTurnos'
+import { supabase } from './servicios/supabase'
 
 function App() {
   // Cada vez que se reserva o cancela, este número sube.
   // Así "Horarios" y "Mis turnos" saben que tienen que actualizarse.
   const [cantidadDeCambios, setCantidadDeCambios] = useState(0)
+
+  // Sesión del usuario: null = no inició sesión
+  const [sesion, setSesion] = useState(null)
+  const [mostrarLogin, setMostrarLogin] = useState(false)
+
+  // Al abrir la página, se fija si ya había una sesión iniciada,
+  // y se queda escuchando cuando alguien inicia o cierra sesión
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSesion(data.session))
+
+    const { data } = supabase.auth.onAuthStateChange((_evento, sesionNueva) => {
+      setSesion(sesionNueva)
+    })
+    return () => data.subscription.unsubscribe()
+  }, [])
+
+  function cerrarSesion() {
+    supabase.auth.signOut()
+  }
 
   function avisarQueCambiaronLasReservas() {
     setCantidadDeCambios((cantidadAnterior) => cantidadAnterior + 1)
@@ -23,9 +44,18 @@ function App() {
           <a href="#mis-turnos">Mis turnos</a>
           <a href="#ubicacion">Ubicación</a>
           <a href="#contacto">Contacto</a>
-          <button>Iniciar sesión</button>
+          {sesion ? (
+            <>
+              <span>Hola, {sesion.user.email}</span>{' '}
+              <button onClick={cerrarSesion}>Cerrar sesión</button>
+            </>
+          ) : (
+            <button onClick={() => setMostrarLogin(true)}>Iniciar sesión</button>
+          )}
         </nav>
       </header>
+
+      {mostrarLogin && !sesion && <IniciarSesion alCerrar={() => setMostrarLogin(false)} />}
 
       <main>
         <section id="inicio">

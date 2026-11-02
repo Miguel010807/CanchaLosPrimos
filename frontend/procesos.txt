@@ -1,0 +1,5 @@
+Correr el Frontend desde la Pc main
+
+  cd Documents/CanchaLosPrimos/frontend
+  npm run dev
+

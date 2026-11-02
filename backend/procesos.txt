@@ -1,4 +1,4 @@
-Correr el "app.py" desde la pc main
+Correr el Backend desde la pc main
 
   cd Documents/CanchasLosPrimos/backend
   source venv/bin/activate
