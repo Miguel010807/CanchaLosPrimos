@@ -11,7 +11,7 @@ from config import FRONTEND_URL
 from routes.rutas_de_canchas import rutasDeCanchas
 from routes.rutas_de_estado import rutasDeEstado
 from routes.rutas_de_reservas import rutasDeReservas
-
+from routes.rutas_de_perfil import rutasDePerfil
 
 def crearAplicacion():
     aplicacion = Flask(__name__)
@@ -26,6 +26,7 @@ def crearAplicacion():
     aplicacion.register_blueprint(rutasDeEstado)
     aplicacion.register_blueprint(rutasDeCanchas)
     aplicacion.register_blueprint(rutasDeReservas)
+    aplicacion.register_blueprint(rutasDePerfil)
 
     return aplicacion
 

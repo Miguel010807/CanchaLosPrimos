@@ -7,7 +7,7 @@ Rutas para consultar las canchas y su disponibilidad.
 from flask import Blueprint, request
 
 from database import usarBaseDeDatos
-from servicios.fechas import convertirTextoAFecha, obtenerNumeroDeDiaDeLaSemana
+from servicios.fechas import convertirTextoAFecha, obtenerNumeroDeDiaDeLaSemana, yaEmpezoElTurno
 from servicios.reservas import (
     ESTADO_RESERVA_CANCELADA,
     FIN_DE_TURNO_DE_LA_RESERVA,
@@ -51,12 +51,21 @@ def consultarDisponibilidadDeCancha(idCancha):
             "hora_inicio": turno["hora_inicio"],
             "hora_fin": turno["hora_fin"],
             "precio": turno["precio"],
-            "estado": "Ocupada" if turno["esta_ocupado"] else "Libre",
+            "estado": calcularEstadoDelTurno(turno, fechaBuscada),
         }
         for turno in turnosDelDia
     ]
 
     return responderConExito({"cancha_id": idCancha, "fecha": fechaBuscada, "turnos": turnos})
+
+
+def calcularEstadoDelTurno(turno, fecha):
+    """Ocupada si alguien lo reservó, 'Ya pasó' si la hora ya llegó, y si no, Libre."""
+    if turno["esta_ocupado"]:
+        return "Ocupada"
+    if yaEmpezoElTurno(fecha, turno["hora_inicio"]):
+        return "Ya pasó"
+    return "Libre"
 
 
 def buscarTurnosDelDiaConSuEstado(cursor, idCancha, fecha):
@@ -82,6 +91,3 @@ def buscarTurnosDelDiaConSuEstado(cursor, idCancha, fecha):
         (fecha, ESTADO_RESERVA_CANCELADA, idCancha, obtenerNumeroDeDiaDeLaSemana(fecha)),
     )
     return cursor.fetchall()
-
-
-

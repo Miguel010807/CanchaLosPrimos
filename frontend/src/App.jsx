@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import './App.css'
+import CompletarDatos from './componentes/CompletarDatos'
 import IniciarSesion from './componentes/IniciarSesion'
 import ListaDeCanchas from './componentes/ListaDeCanchas'
 import MisTurnos from './componentes/MisTurnos'
+import { usarPerfil } from './servicios/perfil'
 import { cerrarSesion, usarSesion } from './servicios/sesion'
 
 function App() {
@@ -12,6 +14,7 @@ function App() {
 
   // Sesión del usuario: null = no inició sesión
   const sesion = usarSesion()
+  const perfil = usarPerfil(sesion)
   const [mostrarLogin, setMostrarLogin] = useState(false)
 
   function avisarQueCambiaronLasReservas() {
@@ -31,7 +34,7 @@ function App() {
           <a href="#contacto">Contacto</a>
           {sesion ? (
             <>
-              <span>Hola, {sesion.user.email}</span>{' '}
+              <span>Hola, {perfil?.nombre || sesion.user.email}</span>{' '}
               <button onClick={cerrarSesion}>Cerrar sesión</button>
             </>
           ) : (
@@ -41,6 +44,9 @@ function App() {
       </header>
 
       {mostrarLogin && !sesion && <IniciarSesion alCerrar={() => setMostrarLogin(false)} />}
+
+      {/* La primera vez que alguien inicia sesión, le pedimos sus datos */}
+      {perfil && !perfil.perfil_completo && <CompletarDatos perfil={perfil} />}
 
       <main>
         <section id="inicio">

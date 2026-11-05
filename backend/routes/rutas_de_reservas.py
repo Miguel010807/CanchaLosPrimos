@@ -13,11 +13,12 @@ from flask import Blueprint, g, request
 
 from database import usarBaseDeDatos
 from servicios.autenticacion import requiereSesion
+from servicios.perfil import tieneElPerfilCompleto
 from servicios.fechas import (
     convertirTextoAFecha,
     convertirTextoAHora,
-    esUnaFechaPasada,
     obtenerNumeroDeDiaDeLaSemana,
+    yaEmpezoElTurno,
 )
 from servicios.reservas import (
     ErrorDeReserva,
@@ -38,6 +39,9 @@ rutasDeReservas = Blueprint("rutasDeReservas", __name__, url_prefix="/api")
 @rutasDeReservas.post("/reservas")
 @requiereSesion
 def crearReserva():
+    if not tieneElPerfilCompleto(g.usuarioActual):
+        return responderConError("Antes de reservar, completá tus datos", codigoHttp=403)
+
     datosRecibidos = request.get_json(silent=True) or {}
 
     idUsuario = g.usuarioActual["id"]
@@ -50,8 +54,8 @@ def crearReserva():
         return responderConError(
             "Faltan datos. Mandá: cancha_id, fecha (AAAA-MM-DD), hora_inicio y hora_fin (HH:MM)"
         )
-    if esUnaFechaPasada(fecha):
-        return responderConError("No se puede reservar en una fecha que ya pasó")
+    if yaEmpezoElTurno(fecha, horaInicio):
+        return responderConError("Ese turno ya empezó o ya pasó, elegí otro")
     if not esUnRangoDeHorasValido(horaInicio, horaFin):
         return responderConError("La hora de inicio tiene que ser antes que la de fin")
 

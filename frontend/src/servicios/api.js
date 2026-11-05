@@ -58,3 +58,14 @@ export function cancelarReserva(idReserva, motivo = null) {
 export function obtenerMisTurnos() {
   return pedirAlBackend('/api/mis-reservas')
 }
+
+export function obtenerMiPerfil() {
+  return pedirAlBackend('/api/mi-perfil')
+}
+
+export function guardarMiPerfil(datos) {
+  return pedirAlBackend('/api/mi-perfil', {
+    method: 'PUT',
+    body: JSON.stringify(datos),
+  })
+}

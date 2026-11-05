@@ -74,7 +74,7 @@ def buscarOCrearUsuario(cursor, usuarioDeSupabase):
     idDeSupabase = usuarioDeSupabase["id"]
     email = usuarioDeSupabase["email"].lower()
 
-    cursor.execute("SELECT id, nombre, apellido, email FROM usuarios WHERE auth_id = %s", (idDeSupabase,))
+    cursor.execute("SELECT id, nombre, apellido, email, telefono FROM usuarios WHERE auth_id = %s", (idDeSupabase,))
     usuario = cursor.fetchone()
     if usuario:
         return usuario
@@ -83,7 +83,7 @@ def buscarOCrearUsuario(cursor, usuarioDeSupabase):
         """
         UPDATE usuarios SET auth_id = %s, email_verificado = TRUE, ultima_sesion = NOW()
         WHERE LOWER(email) = %s AND auth_id IS NULL
-        RETURNING id, nombre, apellido, email
+        RETURNING id, nombre, apellido, email, telefono
         """,
         (idDeSupabase, email),
     )
@@ -96,7 +96,7 @@ def buscarOCrearUsuario(cursor, usuarioDeSupabase):
         INSERT INTO usuarios (auth_id, nombre, apellido, email, rol,
                               email_verificado, activo, fecha_registro, ultima_sesion)
         VALUES (%s, '', '', %s, 'cliente', TRUE, TRUE, NOW(), NOW())
-        RETURNING id, nombre, apellido, email
+        RETURNING id, nombre, apellido, email, telefono
         """,
         (idDeSupabase, email),
     )

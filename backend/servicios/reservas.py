@@ -1,7 +1,9 @@
 """
 Reglas de negocio de las reservas (lo que se puede y no se puede hacer).
 """
-from datetime import date, time
+from datetime import time
+
+from servicios.fechas import esUnaFechaPasada
 
 # Estados posibles de una reserva (columna reservas.estado)
 ESTADO_RESERVA_PENDIENTE = "pendiente"
@@ -112,7 +114,7 @@ def buscarReservaDelUsuario(cursor, idReserva, idUsuario):
 def verificarQueSePuedaCancelar(reserva):
     if reserva["estado"] not in ESTADOS_QUE_SE_PUEDEN_CANCELAR:
         raise ErrorDeReserva(f"Esta reserva no se puede cancelar porque está {reserva['estado']}")
-    if reserva["fecha"] < date.today():
+    if esUnaFechaPasada(reserva["fecha"]):
         raise ErrorDeReserva("No se puede cancelar un turno que ya pasó")
 
 
@@ -137,4 +139,3 @@ def marcarReservaComoCancelada(cursor, idReserva, motivo):
         (idReserva, motivo),
     )
     return reservaCancelada
-

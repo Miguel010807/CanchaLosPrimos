@@ -1,7 +1,17 @@
 """
 Funciones de ayuda para trabajar con fechas y horas.
+
+Todas las comparaciones con "ahora" usan la hora de Argentina,
+porque el servidor (por ejemplo en Railway) puede estar en otro país.
 """
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
+
+ZONA_HORARIA_DE_ARGENTINA = ZoneInfo("America/Argentina/Buenos_Aires")
+
+
+def obtenerAhoraEnArgentina():
+    return datetime.now(ZONA_HORARIA_DE_ARGENTINA)
 
 
 def convertirTextoAFecha(textoFecha):
@@ -26,5 +36,12 @@ def obtenerNumeroDeDiaDeLaSemana(fecha: date):
 
 
 def esUnaFechaPasada(fecha: date):
-    return fecha < date.today()
+    return fecha < obtenerAhoraEnArgentina().date()
 
+
+def yaEmpezoElTurno(fecha: date, horaInicio):
+    """True si el turno es de un día anterior, o es de hoy y su hora de inicio ya llegó."""
+    ahora = obtenerAhoraEnArgentina()
+    if fecha != ahora.date():
+        return fecha < ahora.date()
+    return horaInicio <= ahora.time().replace(tzinfo=None)
