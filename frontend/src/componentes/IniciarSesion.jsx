@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { supabase } from '../servicios/supabase'
 
 /**
- * Login con email en dos pasos:
- *   1) el usuario escribe su email  -> Supabase le manda un código
- *   2) escribe el código            -> queda logueado
+ * Login de dos formas:
+ *   - Con Google: un botón que lleva a Google y vuelve logueado.
+ *   - Con email en dos pasos:
+ *       1) el usuario escribe su email  -> Supabase le manda un código
+ *       2) escribe el código            -> queda logueado
  */
 function IniciarSesion({ alCerrar, alIniciarSesion }) {
   const [email, setEmail] = useState('')
@@ -12,6 +14,15 @@ function IniciarSesion({ alCerrar, alIniciarSesion }) {
   const [yaSeEnvioElCodigo, setYaSeEnvioElCodigo] = useState(false)
   const [estaEnviando, setEstaEnviando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
+
+  async function iniciarSesionConGoogle() {
+    // Lleva al usuario a Google; cuando termina, Google lo devuelve a esta misma página ya logueado
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
+    if (error) setMensaje(`No se pudo iniciar sesión con Google: ${error.message}`)
+  }
 
   async function enviarCodigoAlEmail(evento) {
     evento.preventDefault()
@@ -53,6 +64,10 @@ function IniciarSesion({ alCerrar, alIniciarSesion }) {
   return (
     <div>
       <h2>Iniciá sesión</h2>
+
+      <button onClick={iniciarSesionConGoogle}>Continuar con Google</button>
+
+      <p>o con tu email:</p>
 
       {!yaSeEnvioElCodigo ? (
         <form onSubmit={enviarCodigoAlEmail}>
