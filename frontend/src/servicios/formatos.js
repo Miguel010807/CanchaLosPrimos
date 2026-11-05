@@ -3,6 +3,7 @@
  */
 
 const NOMBRES_DE_LOS_DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+const NOMBRES_CORTOS_DE_LOS_DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
 /** 40000 -> "$40.000" */
 export function formatearPrecio(precio) {
@@ -16,11 +17,31 @@ export function formatearFecha(textoFecha) {
   return `${NOMBRES_DE_LOS_DIAS[fecha.getDay()]} ${dia}/${mes}`
 }
 
-/** Fecha de hoy en formato AAAA-MM-DD (hora de Argentina, no la de Londres) */
-export function obtenerFechaDeHoy() {
-  const hoy = new Date()
-  const anio = hoy.getFullYear()
-  const mes = String(hoy.getMonth() + 1).padStart(2, '0')
-  const dia = String(hoy.getDate()).padStart(2, '0')
+/** Pasa una fecha de JavaScript a texto AAAA-MM-DD (usando la hora local, no la de Londres) */
+function convertirFechaATexto(fecha) {
+  const anio = fecha.getFullYear()
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0')
+  const dia = String(fecha.getDate()).padStart(2, '0')
   return `${anio}-${mes}-${dia}`
+}
+
+/** Fecha de hoy en formato AAAA-MM-DD */
+export function obtenerFechaDeHoy() {
+  return convertirFechaATexto(new Date())
+}
+
+/**
+ * Los próximos días a partir de hoy, para los botones de "elegí el día".
+ * Ej: [{ fecha: '2026-11-07', nombreCorto: 'Sáb', numero: 7 }, ...]
+ */
+export function obtenerProximosDias(cantidad) {
+  const hoy = new Date()
+  return Array.from({ length: cantidad }, (_, indice) => {
+    const fecha = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + indice)
+    return {
+      fecha: convertirFechaATexto(fecha),
+      nombreCorto: indice === 0 ? 'Hoy' : NOMBRES_CORTOS_DE_LOS_DIAS[fecha.getDay()],
+      numero: fecha.getDate(),
+    }
+  })
 }

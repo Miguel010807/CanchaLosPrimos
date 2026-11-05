@@ -12,7 +12,7 @@ function App() {
   // Así "Horarios" y "Mis turnos" saben que tienen que actualizarse.
   const [cantidadDeCambios, setCantidadDeCambios] = useState(0)
 
-  // Sesión del usuario: null = no inició sesión
+  // Sesión y datos del usuario (null = no inició sesión / todavía cargando)
   const sesion = usarSesion()
   const perfil = usarPerfil(sesion)
   const [mostrarLogin, setMostrarLogin] = useState(false)
@@ -22,75 +22,93 @@ function App() {
   }
 
   return (
-    <div>
-      <header>
-        <h1>⚽ Los Primos</h1>
+    <>
+      <header className="encabezado">
+        <div className="contenedor">
+          <a href="#inicio" className="marca">
+            {/* Cuando tengas el logo, guardalo en frontend/public/fotos/logo.png y cambiá "LP" por:
+                <img src="/fotos/logo.png" alt="" /> */}
+            <span className="marca-logo">LP</span>
+            <span className="marca-nombre">LOS PRIMOS</span>
+          </a>
 
-        <nav>
-          <a href="#inicio">Inicio</a>
-          <a href="#canchas">Canchas</a>
-          <a href="#mis-turnos">Mis turnos</a>
-          <a href="#ubicacion">Ubicación</a>
-          <a href="#contacto">Contacto</a>
-          {sesion ? (
-            <>
-              <span>Hola, {perfil?.nombre || sesion.user.email}</span>{' '}
-              <button onClick={cerrarSesion}>Cerrar sesión</button>
-            </>
-          ) : (
-            <button onClick={() => setMostrarLogin(true)}>Iniciar sesión</button>
-          )}
-        </nav>
+          <nav className="menu">
+            <a href="#canchas" className="solo-pantalla-grande">Canchas</a>
+            <a href="#mis-turnos">Mis turnos</a>
+            {sesion ? (
+              <>
+                <span className="saludo solo-pantalla-grande">Hola, {perfil?.nombre || 'crack'}</span>
+                <button className="boton boton-chico boton-secundario" onClick={cerrarSesion}>
+                  Salir
+                </button>
+              </>
+            ) : (
+              <button className="boton boton-chico boton-principal" onClick={() => setMostrarLogin(true)}>
+                Ingresar
+              </button>
+            )}
+          </nav>
+        </div>
       </header>
 
-      {mostrarLogin && !sesion && <IniciarSesion alCerrar={() => setMostrarLogin(false)} />}
-
-      {/* La primera vez que alguien inicia sesión, le pedimos sus datos */}
-      {perfil && !perfil.perfil_completo && <CompletarDatos perfil={perfil} />}
-
       <main>
-        <section id="inicio">
-          <h2>Fútbol Los Primos</h2>
-          <p>Reservá tu cancha de manera rápida y sencilla.</p>
-
-          <button>Reservar cancha</button>
+        {/* Foto de fondo: frontend/public/fotos/portada.jpg */}
+        <section id="inicio" className="portada">
+          <div className="contenedor">
+            <h1 className="titulo">
+              Reservá tu
+              <br />
+              <span>cancha</span>
+            </h1>
+            <p className="texto-suave">Fútbol 5 y Fútbol 4 · Av. Larrazábal 4365, CABA</p>
+            <a href="#canchas" className="boton boton-principal" style={{ display: 'inline-block', textDecoration: 'none' }}>
+              Ver horarios
+            </a>
+          </div>
         </section>
 
-        <section id="canchas">
-          <h2>Nuestras canchas</h2>
-
-          {/* Las canchas ahora vienen de la base de datos */}
-          <ListaDeCanchas
-            cantidadDeCambios={cantidadDeCambios}
-            alCambiarLasReservas={avisarQueCambiaronLasReservas}
-          />
+        <section id="canchas" className="seccion">
+          <div className="contenedor">
+            <h2 className="titulo-de-seccion">Nuestras canchas</h2>
+            <ListaDeCanchas
+              cantidadDeCambios={cantidadDeCambios}
+              alCambiarLasReservas={avisarQueCambiaronLasReservas}
+            />
+          </div>
         </section>
 
-        <section id="mis-turnos">
-          <h2>Mis turnos</h2>
-
-          <MisTurnos
-            cantidadDeCambios={cantidadDeCambios}
-            alCambiarLasReservas={avisarQueCambiaronLasReservas}
-          />
-        </section>
-
-        <section id="ubicacion">
-          <h2>¿Dónde estamos?</h2>
-          <p>Av. Larrazábal 4365, CABA</p>
-        </section>
-
-        <section id="contacto">
-          <h2>Contacto</h2>
-          <p>¿Tenés alguna consulta? Comunicate con nosotros.</p>
-          <p>📞 11 3385-8925</p>
+        <section id="mis-turnos" className="seccion">
+          <div className="contenedor">
+            <h2 className="titulo-de-seccion">Mis turnos</h2>
+            <MisTurnos
+              cantidadDeCambios={cantidadDeCambios}
+              alCambiarLasReservas={avisarQueCambiaronLasReservas}
+              alPedirInicioDeSesion={() => setMostrarLogin(true)}
+            />
+          </div>
         </section>
       </main>
 
-      <footer>
-        <p>© 2026 Los Primos - Fútbol 5 y Fútbol 4</p>
+      <footer id="contacto" className="pie">
+        <div className="contenedor">
+          <span className="marca-nombre">LOS PRIMOS · FÚTBOL CLUB</span>
+          <p>📍 Av. Larrazábal 4365, CABA</p>
+          <p>
+            📞 <a href="tel:+541133858925">11 3385-8925</a>
+          </p>
+          <p>
+            📸 <a href="https://www.instagram.com/losprimos.f5/" target="_blank" rel="noreferrer">@losprimos.f5</a>
+          </p>
+          <p>Abrimos todos los días desde las 15 hs · Viernes y sábados hasta las 2 hs</p>
+        </div>
       </footer>
-    </div>
+
+      {/* Ventanas emergentes */}
+      {mostrarLogin && !sesion && <IniciarSesion alCerrar={() => setMostrarLogin(false)} />}
+
+      {/* La primera vez que alguien inicia sesión, le pedimos sus datos (no se puede saltear) */}
+      {perfil && !perfil.perfil_completo && <CompletarDatos perfil={perfil} />}
+    </>
   )
 }
 

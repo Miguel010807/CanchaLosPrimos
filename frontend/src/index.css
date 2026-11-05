@@ -1,111 +1,655 @@
+/* =====================================================================
+   ESTILOS DE LOS PRIMOS
+   Pensado primero para celular; en compu se centra en una columna.
+   Colores sacados del logo: negro, blanco y violeta.
+   ===================================================================== */
+
+/* ---------- 1. Colores, letras y medidas (se usan en todo el archivo) ---------- */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --color-fondo: #0e0e10;
+  --color-superficie: #1a1a1d;
+  --color-superficie-alta: #242428;
+  --color-borde: #2c2c31;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --color-texto: #ffffff;
+  --color-texto-suave: #b8b8be;
+  --color-texto-apagado: #6e6e75;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  --color-violeta: #7b57c8;
+  --color-violeta-claro: #9f7fe6;
+  --color-violeta-fondo: #2a2140;
+
+  --color-verde: #2fa35a;
+  --color-verde-claro: #5fd38a;
+  --color-rojo: #e05a5a;
+
+  --letra-titulos: 'Alfa Slab One', Georgia, serif;
+  --letra-textos: 'Inter', system-ui, sans-serif;
+
+  --radio: 12px;
+  --ancho-maximo: 560px;
+
+  color-scheme: dark;
+  font-family: var(--letra-textos);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-texto);
+  background: var(--color-fondo);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h2,
+h3 {
+  margin: 0;
+  font-weight: 400;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+img {
+  display: block;
+  max-width: 100%;
 }
 
-code {
+/* ---------- 2. Piezas que se repiten ---------- */
+
+.titulo {
+  font-family: var(--letra-titulos);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.titulo-de-seccion {
+  font-family: var(--letra-titulos);
   font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-texto-suave);
+  margin-bottom: 12px;
+}
+
+.texto-suave {
+  color: var(--color-texto-suave);
+  font-size: 14px;
+}
+
+.contenedor {
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.seccion {
+  padding: 28px 0;
+}
+
+/* Botones */
+.boton {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.boton:active {
+  transform: scale(0.98);
+}
+
+.boton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.boton-principal {
+  background: var(--color-violeta);
+  color: #fff;
+}
+
+.boton-principal:hover {
+  background: var(--color-violeta-claro);
+}
+
+.boton-secundario {
+  background: transparent;
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+}
+
+.boton-secundario:hover {
+  background: var(--color-superficie-alta);
+}
+
+.boton-google {
+  background: #fff;
+  color: #1f1f1f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.boton-ancho {
+  width: 100%;
+}
+
+.boton-chico {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+/* Campos de formulario */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: var(--color-texto-suave);
+}
+
+.campo input {
+  font: inherit;
+  font-size: 16px; /* 16px evita que el celu haga zoom al escribir */
+  color: var(--color-texto);
+  background: var(--color-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.campo input:focus {
+  outline: none;
+  border-color: var(--color-violeta-claro);
+}
+
+/* Mensajes */
+.aviso {
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  margin: 12px 0;
+  background: var(--color-superficie-alta);
+}
+
+.aviso-exito {
+  background: #16301f;
+  color: var(--color-verde-claro);
+}
+
+.aviso-error {
+  background: #3a1a1a;
+  color: #f2a3a3;
+}
+
+/* Etiquetas de estado (pendiente, confirmada...) */
+.etiqueta {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.etiqueta-pendiente {
+  background: var(--color-violeta-fondo);
+  color: #c9b5f5;
+}
+
+.etiqueta-confirmada {
+  background: #16301f;
+  color: var(--color-verde-claro);
+}
+
+.etiqueta-cancelada,
+.etiqueta-finalizada {
+  background: var(--color-superficie-alta);
+  color: var(--color-texto-apagado);
+}
+
+/* ---------- 3. Encabezado ---------- */
+
+.encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(14, 14, 16, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.encabezado .contenedor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 60px;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-texto);
+  text-decoration: none;
+}
+
+.marca-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--letra-titulos);
+  font-size: 15px;
+  overflow: hidden;
+}
+
+.marca-nombre {
+  font-family: var(--letra-titulos);
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+}
+
+.menu a {
+  color: var(--color-texto-suave);
+  text-decoration: none;
+}
+
+.menu a:hover {
+  color: var(--color-texto);
+}
+
+.saludo {
+  color: var(--color-texto-suave);
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* En pantallas muy chicas se esconde el link "Canchas" y el saludo */
+@media (max-width: 400px) {
+  .menu .solo-pantalla-grande {
+    display: none;
+  }
+}
+
+/* ---------- 4. Portada ---------- */
+
+.portada {
+  /* Foto de fondo: frontend/public/fotos/portada.jpg
+     Si todavía no está, se ve el color de fondo */
+  background-color: var(--color-superficie);
+  background-image: linear-gradient(rgba(14, 14, 16, 0.55), rgba(14, 14, 16, 0.85)),
+    url('/fotos/portada.jpg');
+  background-size: cover;
+  background-position: center;
+  padding: 56px 0 40px;
+}
+
+.portada h1 {
+  font-size: 34px;
+  line-height: 1.1;
+  margin-bottom: 10px;
+}
+
+.portada h1 span {
+  color: var(--color-violeta-claro);
+}
+
+.portada p {
+  margin-bottom: 22px;
+}
+
+/* ---------- 5. Canchas ---------- */
+
+.tarjeta-cancha {
+  background: var(--color-superficie);
+  border-radius: var(--radio);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.foto-cancha {
+  /* La foto se pone desde el componente; si falta, queda este color */
+  height: 150px;
+  background-color: var(--color-superficie-alta);
+  background-size: cover;
+  background-position: center;
+}
+
+.tarjeta-cancha-cuerpo {
+  padding: 14px 16px 16px;
+}
+
+.tarjeta-cancha-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.tarjeta-cancha-fila h3 {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.precio {
+  color: var(--color-violeta-claro);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tarjeta-cancha .boton {
+  margin-top: 14px;
+}
+
+/* ---------- 6. Horarios ---------- */
+
+.horarios {
+  border-top: 1px solid var(--color-borde);
+  padding: 14px 16px 16px;
+}
+
+.selector-de-dias {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+}
+
+.boton-dia {
+  font: inherit;
+  flex: 0 0 auto;
+  min-width: 52px;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 6px;
+  text-align: center;
+  background: var(--color-superficie-alta);
+  color: var(--color-texto-suave);
+  cursor: pointer;
+}
+
+.boton-dia span {
+  display: block;
+  font-size: 12px;
+}
+
+.boton-dia strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+.boton-dia-elegido {
+  background: var(--color-violeta);
+  color: #e9e1fb;
+}
+
+.lista-de-turnos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.turno {
+  font: inherit;
+  font-size: 14px;
+  border-radius: 10px;
+  padding: 12px 10px;
+  text-align: left;
+  border: 1px solid transparent;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+}
+
+.turno small {
+  display: block;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.turno-libre {
+  border-color: #245c3a;
+  cursor: pointer;
+}
+
+.turno-libre small {
+  color: var(--color-verde-claro);
+}
+
+.turno-libre:hover {
+  border-color: var(--color-verde);
+}
+
+.turno-ocupado {
+  color: var(--color-texto-apagado);
+  cursor: not-allowed;
+}
+
+.turno-ocupado .turno-hora {
+  text-decoration: line-through;
+}
+
+.turno-elegido {
+  background: var(--color-violeta-fondo);
+  border-color: var(--color-violeta-claro);
+}
+
+.turno-elegido small {
+  color: #c9b5f5;
+}
+
+/* Confirmación: queda pegada abajo, a mano del pulgar */
+.confirmacion {
+  position: sticky;
+  bottom: 12px;
+  margin-top: 14px;
+  background: #fff;
+  color: #111;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.confirmacion .detalle {
+  font-size: 14px;
+  color: #555;
+}
+
+.confirmacion .monto {
+  font-family: var(--letra-titulos);
+  font-size: 24px;
+  margin: 2px 0 12px;
+}
+
+.confirmacion .botones {
+  display: flex;
+  gap: 8px;
+}
+
+.confirmacion .botones .boton-principal {
+  flex: 1;
+}
+
+.confirmacion .boton-secundario {
+  color: #111;
+  border-color: #ddd;
+}
+
+.confirmacion .boton-secundario:hover {
+  background: #f2f2f2;
+}
+
+/* ---------- 7. Mis turnos ---------- */
+
+.mi-turno {
+  background: var(--color-superficie);
+  border-radius: var(--radio);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.mi-turno-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.mi-turno h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mi-turno-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.boton-peligro {
+  background: transparent;
+  color: var(--color-rojo);
+  border: 1px solid #5a2a2a;
+}
+
+.boton-peligro:hover {
+  background: #3a1a1a;
+}
+
+.caja-vacia {
+  background: var(--color-superficie);
+  border-radius: var(--radio);
+  padding: 20px 16px;
+  text-align: center;
+  color: var(--color-texto-suave);
+  font-size: 14px;
+}
+
+/* ---------- 8. Ventana emergente (login, completar datos) ---------- */
+
+.fondo-oscuro {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: flex-end; /* en celu sube desde abajo */
+  justify-content: center;
+}
+
+.ventana {
+  width: 100%;
+  max-width: var(--ancho-maximo);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--color-superficie);
+  border-radius: 18px 18px 0 0;
+  padding: 22px 18px 28px;
+}
+
+@media (min-width: 600px) {
+  .fondo-oscuro {
+    align-items: center;
+  }
+
+  .ventana {
+    border-radius: 18px;
+  }
+}
+
+.ventana-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.ventana h2 {
+  font-size: 22px;
+}
+
+.boton-cerrar {
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  background: none;
+  border: none;
+  color: var(--color-texto-suave);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.separador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-texto-apagado);
+  font-size: 13px;
+  margin: 16px 0;
+}
+
+.separador::before,
+.separador::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-borde);
+}
+
+/* ---------- 9. Pie de página ---------- */
+
+.pie {
+  border-top: 1px solid var(--color-borde);
+  padding: 28px 0 40px;
+  font-size: 14px;
+  color: var(--color-texto-suave);
+}
+
+.pie .contenedor > * + * {
+  margin-top: 8px;
+}
+
+.pie a {
+  color: var(--color-violeta-claro);
+  text-decoration: none;
+}
+
+.pie .marca-nombre {
+  color: var(--color-texto);
+  display: block;
+  margin-bottom: 6px;
 }

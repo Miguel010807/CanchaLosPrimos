@@ -1,118 +1,150 @@
 import { useEffect, useState } from 'react'
 import { crearReserva, obtenerDisponibilidad } from '../servicios/api'
-import { formatearFecha, formatearPrecio, obtenerFechaDeHoy } from '../servicios/formatos'
+import { formatearFecha, formatearPrecio, obtenerFechaDeHoy, obtenerProximosDias } from '../servicios/formatos'
 import { usarPerfil } from '../servicios/perfil'
 import { usarSesion } from '../servicios/sesion'
-import CompletarDatos from './CompletarDatos'
 import IniciarSesion from './IniciarSesion'
 
+const CANTIDAD_DE_DIAS_PARA_ELEGIR = 14
+
 /**
- * Muestra los turnos de una cancha para el día elegido (Libre / Ocupada).
- * Para reservar, primero pide confirmación.
- * Si no inició sesión, le pide iniciarla ahí mismo y después vuelve al mismo turno.
- * Si es su primera vez, le pide completar sus datos antes de confirmar.
+ * Turnos de una cancha para el día elegido.
+ *   1) El usuario elige un día y toca un turno libre.
+ *   2) Si no inició sesión, se abre el login; al entrar, vuelve al mismo turno.
+ *      (Si es su primera vez, App le pide completar sus datos.)
+ *   3) Abajo aparece la confirmación con el precio.
  */
 function HorariosDeCancha({ cancha, cantidadDeCambios, alCambiarLasReservas }) {
   const [fechaElegida, setFechaElegida] = useState(obtenerFechaDeHoy())
   const [turnos, setTurnos] = useState([])
   const [estaCargando, setEstaCargando] = useState(true)
   const [mensaje, setMensaje] = useState(null)
-  const [turnoParaConfirmar, setTurnoParaConfirmar] = useState(null)
+  const [turnoElegido, setTurnoElegido] = useState(null)
+  const [estaReservando, setEstaReservando] = useState(false)
   const sesion = usarSesion()
   const perfil = usarPerfil(sesion)
+
+  const proximosDias = obtenerProximosDias(CANTIDAD_DE_DIAS_PARA_ELEGIR)
 
   // Se vuelven a pedir los turnos si cambia la fecha o si alguien reservó/canceló
   useEffect(() => {
     setEstaCargando(true)
     obtenerDisponibilidad(cancha.id, fechaElegida)
       .then((respuesta) => setTurnos(respuesta.turnos))
-      .catch((error) => setMensaje(error.message))
+      .catch((error) => setMensaje({ tipo: 'error', texto: error.message }))
       .finally(() => setEstaCargando(false))
   }, [cancha.id, fechaElegida, cantidadDeCambios])
 
   function cambiarFecha(nuevaFecha) {
     setFechaElegida(nuevaFecha)
-    setTurnoParaConfirmar(null)
+    setTurnoElegido(null)
+    setMensaje(null)
+  }
+
+  function elegirTurno(turno) {
+    setTurnoElegido(turno)
     setMensaje(null)
   }
 
   async function confirmarReserva() {
-    const turno = turnoParaConfirmar
-    setTurnoParaConfirmar(null)
+    setEstaReservando(true)
     try {
       await crearReserva({
         cancha_id: cancha.id,
         fecha: fechaElegida,
-        hora_inicio: turno.hora_inicio,
-        hora_fin: turno.hora_fin,
+        hora_inicio: turnoElegido.hora_inicio,
+        hora_fin: turnoElegido.hora_fin,
       })
-      setMensaje(`¡Listo! Reservaste de ${turno.hora_inicio} a ${turno.hora_fin}. Queda pendiente de pago.`)
+      setMensaje({
+        tipo: 'exito',
+        texto: `¡Listo! Reservaste de ${turnoElegido.hora_inicio} a ${turnoElegido.hora_fin}. Lo ves en Mis turnos.`,
+      })
+      setTurnoElegido(null)
       alCambiarLasReservas() // actualiza los turnos y "Mis turnos"
     } catch (error) {
-      setMensaje(error.message)
+      setMensaje({ tipo: 'error', texto: error.message })
+    } finally {
+      setEstaReservando(false)
     }
   }
 
+  // Los turnos que ya pasaron no se muestran
+  const turnosParaMostrar = turnos.filter((turno) => turno.estado !== 'Ya pasó')
+
+  // Solo se puede confirmar si inició sesión y ya completó sus datos
+  const puedeConfirmar = turnoElegido && perfil?.perfil_completo
+
   return (
-    <div>
-      <label>
-        Elegí el día:{' '}
-        <input
-          type="date"
-          value={fechaElegida}
-          min={obtenerFechaDeHoy()}
-          onChange={(evento) => cambiarFecha(evento.target.value)}
-        />
-      </label>
+    <div className="horarios">
+      <div className="selector-de-dias" role="group" aria-label="Elegí el día">
+        {proximosDias.map((dia) => (
+          <button
+            key={dia.fecha}
+            className={`boton-dia ${dia.fecha === fechaElegida ? 'boton-dia-elegido' : ''}`}
+            onClick={() => cambiarFecha(dia.fecha)}
+            aria-pressed={dia.fecha === fechaElegida}
+          >
+            <span>{dia.nombreCorto}</span>
+            <strong>{dia.numero}</strong>
+          </button>
+        ))}
+      </div>
 
-      {mensaje && <p>{mensaje}</p>}
-
-      {turnoParaConfirmar && !sesion && (
-        <div>
-          <p>Para reservar tenés que iniciar sesión.</p>
-          <IniciarSesion
-            alCerrar={() => setTurnoParaConfirmar(null)}
-            alIniciarSesion={() => {}} // no hace nada: al haber sesión, aparece solo la confirmación del mismo turno
-          />
-        </div>
-      )}
-
-      {turnoParaConfirmar && sesion && !perfil && <p>Cargando tus datos...</p>}
-
-      {turnoParaConfirmar && perfil && !perfil.perfil_completo && (
-        <div>
-          <p>Antes de reservar, completá tus datos.</p>
-          <CompletarDatos perfil={perfil} />
-        </div>
-      )}
-
-      {turnoParaConfirmar && perfil?.perfil_completo && (
-        <div>
-          <p>
-            ¿Reservar <strong>{cancha.nombre}</strong> el {formatearFecha(fechaElegida)} de{' '}
-            {turnoParaConfirmar.hora_inicio} a {turnoParaConfirmar.hora_fin} por{' '}
-            {formatearPrecio(turnoParaConfirmar.precio)}?
-          </p>
-          <button onClick={confirmarReserva}>Confirmar</button>{' '}
-          <button onClick={() => setTurnoParaConfirmar(null)}>Volver</button>
-        </div>
+      {mensaje && (
+        <p className={`aviso ${mensaje.tipo === 'exito' ? 'aviso-exito' : 'aviso-error'}`}>{mensaje.texto}</p>
       )}
 
       {estaCargando ? (
-        <p>Cargando horarios...</p>
-      ) : turnos.length === 0 ? (
-        <p>No hay horarios para este día.</p>
+        <p className="texto-suave">Cargando horarios...</p>
+      ) : turnosParaMostrar.length === 0 ? (
+        <p className="caja-vacia">No hay más horarios para este día.</p>
       ) : (
-        <ul>
-          {turnos.map((turno) => (
-            <li key={turno.hora_inicio}>
-              {turno.hora_inicio} a {turno.hora_fin} · {turno.estado}{' '}
-              {turno.estado === 'Libre' && (
-                <button onClick={() => setTurnoParaConfirmar(turno)}>Reservar</button>
-              )}
-            </li>
-          ))}
-        </ul>
+        <div className="lista-de-turnos">
+          {turnosParaMostrar.map((turno) => {
+            const estaLibre = turno.estado === 'Libre'
+            const estaElegido = turnoElegido?.hora_inicio === turno.hora_inicio
+            const claseDelTurno = estaElegido ? 'turno-elegido' : estaLibre ? 'turno-libre' : 'turno-ocupado'
+            return (
+              <button
+                key={turno.hora_inicio}
+                className={`turno ${claseDelTurno}`}
+                disabled={!estaLibre}
+                onClick={() => elegirTurno(turno)}
+              >
+                <span className="turno-hora">
+                  {turno.hora_inicio} – {turno.hora_fin}
+                </span>
+                <small>{estaElegido ? 'Elegido' : turno.estado}</small>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Si eligió un turno sin haber iniciado sesión, se abre el login */}
+      {turnoElegido && !sesion && (
+        <IniciarSesion
+          motivo="Para reservar tenés que iniciar sesión. Después volvés a este mismo turno."
+          alCerrar={() => setTurnoElegido(null)}
+          alIniciarSesion={() => {}} // no hace nada: al haber sesión, aparece solo la confirmación
+        />
+      )}
+
+      {puedeConfirmar && (
+        <div className="confirmacion">
+          <p className="detalle">
+            {cancha.nombre} · {formatearFecha(fechaElegida)} · {turnoElegido.hora_inicio} a {turnoElegido.hora_fin}
+          </p>
+          <p className="monto">{formatearPrecio(turnoElegido.precio)}</p>
+          <div className="botones">
+            <button className="boton boton-secundario" onClick={() => setTurnoElegido(null)}>
+              Volver
+            </button>
+            <button className="boton boton-principal" onClick={confirmarReserva} disabled={estaReservando}>
+              {estaReservando ? 'Reservando...' : 'Confirmar reserva'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -4,8 +4,11 @@ import { formatearPrecio } from '../servicios/formatos'
 import HorariosDeCancha from './HorariosDeCancha'
 
 /**
- * Muestra las canchas que vienen de la base de datos (no escritas a mano).
+ * Tarjetas de las canchas (vienen de la base de datos).
  * Al tocar "Ver horarios" se despliegan los turnos de esa cancha.
+ *
+ * Fotos: se buscan en frontend/public/fotos/ con el nombre cancha-f5.jpg, cancha-f4.jpg
+ * (según el tipo de cancha). Si todavía no están, se ve un recuadro gris.
  */
 function ListaDeCanchas({ cantidadDeCambios, alCambiarLasReservas }) {
   const [canchas, setCanchas] = useState([])
@@ -24,30 +27,49 @@ function ListaDeCanchas({ cantidadDeCambios, alCambiarLasReservas }) {
     setIdCanchaAbierta(idCanchaAbierta === idCancha ? null : idCancha)
   }
 
-  if (estaCargando) return <p>Cargando canchas...</p>
-  if (mensajeDeError) return <p>No se pudieron cargar las canchas: {mensajeDeError}</p>
+  if (estaCargando) return <p className="texto-suave">Cargando canchas...</p>
+  if (mensajeDeError) return <p className="aviso aviso-error">No se pudieron cargar las canchas: {mensajeDeError}</p>
 
   return (
     <div>
-      {canchas.map((cancha) => (
-        <article key={cancha.id}>
-          <h3>{cancha.nombre}</h3>
-          <p>{cancha.descripcion}</p>
-          <p>Hasta {cancha.capacidad} jugadores · {formatearPrecio(cancha.precio_base)} la hora</p>
-
-          <button onClick={() => abrirOCerrarHorarios(cancha.id)}>
-            {idCanchaAbierta === cancha.id ? 'Ocultar horarios' : 'Ver horarios'}
-          </button>
-
-          {idCanchaAbierta === cancha.id && (
-            <HorariosDeCancha
-              cancha={cancha}
-              cantidadDeCambios={cantidadDeCambios}
-              alCambiarLasReservas={alCambiarLasReservas}
+      {canchas.map((cancha) => {
+        const estaAbierta = idCanchaAbierta === cancha.id
+        return (
+          <article key={cancha.id} className="tarjeta-cancha">
+            <div
+              className="foto-cancha"
+              role="img"
+              aria-label={`Foto de la ${cancha.nombre}`}
+              style={{ backgroundImage: `url('/fotos/cancha-${cancha.tipo.toLowerCase()}.jpg')` }}
             />
-          )}
-        </article>
-      ))}
+
+            <div className="tarjeta-cancha-cuerpo">
+              <div className="tarjeta-cancha-fila">
+                <h3>{cancha.nombre}</h3>
+                <span className="precio">{formatearPrecio(cancha.precio_base)}</span>
+              </div>
+              <p className="texto-suave">
+                Hasta {cancha.capacidad} jugadores · Pasto sintético · por hora
+              </p>
+
+              <button
+                className={`boton boton-ancho ${estaAbierta ? 'boton-secundario' : 'boton-principal'}`}
+                onClick={() => abrirOCerrarHorarios(cancha.id)}
+              >
+                {estaAbierta ? 'Ocultar horarios' : 'Ver horarios'}
+              </button>
+            </div>
+
+            {estaAbierta && (
+              <HorariosDeCancha
+                cancha={cancha}
+                cantidadDeCambios={cantidadDeCambios}
+                alCambiarLasReservas={alCambiarLasReservas}
+              />
+            )}
+          </article>
+        )
+      })}
     </div>
   )
 }

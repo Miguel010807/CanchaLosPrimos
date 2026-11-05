@@ -9,7 +9,7 @@ const ESTADOS_QUE_SE_PUEDEN_CANCELAR = ['pendiente', 'confirmada']
  * Lista las reservas del usuario y permite cancelar las que siguen activas.
  * Solo se muestra si inició sesión.
  */
-function MisTurnos({ cantidadDeCambios, alCambiarLasReservas }) {
+function MisTurnos({ cantidadDeCambios, alCambiarLasReservas, alPedirInicioDeSesion }) {
   const [misTurnos, setMisTurnos] = useState([])
   const [estaCargando, setEstaCargando] = useState(true)
   const [mensaje, setMensaje] = useState(null)
@@ -27,7 +27,7 @@ function MisTurnos({ cantidadDeCambios, alCambiarLasReservas }) {
     setEstaCargando(true)
     obtenerMisTurnos()
       .then(setMisTurnos)
-      .catch((error) => setMensaje(error.message))
+      .catch((error) => setMensaje({ tipo: 'error', texto: error.message }))
       .finally(() => setEstaCargando(false))
   }, [cantidadDeCambios, idDeLaSesion])
 
@@ -35,41 +35,65 @@ function MisTurnos({ cantidadDeCambios, alCambiarLasReservas }) {
     setIdTurnoParaCancelar(null)
     try {
       await cancelarReserva(idReserva)
-      setMensaje('Reserva cancelada. El turno quedó libre otra vez.')
+      setMensaje({ tipo: 'exito', texto: 'Reserva cancelada. El turno quedó libre otra vez.' })
       alCambiarLasReservas()
     } catch (error) {
-      setMensaje(error.message)
+      setMensaje({ tipo: 'error', texto: error.message })
     }
   }
 
-  if (!sesion) return <p>Iniciá sesión para ver tus turnos.</p>
-  if (estaCargando) return <p>Cargando tus turnos...</p>
+  if (!sesion) {
+    return (
+      <div className="caja-vacia">
+        <p style={{ marginBottom: 12 }}>Iniciá sesión para ver tus turnos.</p>
+        <button className="boton boton-principal" onClick={alPedirInicioDeSesion}>
+          Iniciar sesión
+        </button>
+      </div>
+    )
+  }
+  if (estaCargando) return <p className="texto-suave">Cargando tus turnos...</p>
 
   return (
     <div>
-      {mensaje && <p>{mensaje}</p>}
+      {mensaje && (
+        <p className={`aviso ${mensaje.tipo === 'exito' ? 'aviso-exito' : 'aviso-error'}`}>{mensaje.texto}</p>
+      )}
 
       {misTurnos.length === 0 ? (
-        <p>Todavía no tenés turnos reservados.</p>
+        <p className="caja-vacia">Todavía no tenés turnos. Elegí una cancha y reservá el primero.</p>
       ) : (
-        <ul>
-          {misTurnos.map((turno) => (
-            <li key={turno.id}>
-              {turno.cancha} · {formatearFecha(turno.fecha)} · {turno.hora_inicio} a {turno.hora_fin} ·{' '}
-              {formatearPrecio(turno.precio)} · <strong>{turno.estado}</strong>{' '}
-              {ESTADOS_QUE_SE_PUEDEN_CANCELAR.includes(turno.estado) &&
-                (idTurnoParaCancelar === turno.id ? (
+        misTurnos.map((turno) => (
+          <article key={turno.id} className="mi-turno">
+            <div className="mi-turno-fila">
+              <h3>{turno.cancha}</h3>
+              <span className={`etiqueta etiqueta-${turno.estado}`}>{turno.estado}</span>
+            </div>
+            <p className="texto-suave">
+              {formatearFecha(turno.fecha)} · {turno.hora_inicio} a {turno.hora_fin} · {formatearPrecio(turno.precio)}
+            </p>
+
+            {ESTADOS_QUE_SE_PUEDEN_CANCELAR.includes(turno.estado) && (
+              <div className="mi-turno-acciones">
+                {idTurnoParaCancelar === turno.id ? (
                   <>
-                    ¿Seguro?{' '}
-                    <button onClick={() => confirmarCancelacion(turno.id)}>Sí, cancelar</button>{' '}
-                    <button onClick={() => setIdTurnoParaCancelar(null)}>No</button>
+                    <span>¿Seguro?</span>
+                    <button className="boton boton-chico boton-peligro" onClick={() => confirmarCancelacion(turno.id)}>
+                      Sí, cancelar
+                    </button>
+                    <button className="boton boton-chico boton-secundario" onClick={() => setIdTurnoParaCancelar(null)}>
+                      No
+                    </button>
                   </>
                 ) : (
-                  <button onClick={() => setIdTurnoParaCancelar(turno.id)}>Cancelar</button>
-                ))}
-            </li>
-          ))}
-        </ul>
+                  <button className="boton boton-chico boton-secundario" onClick={() => setIdTurnoParaCancelar(turno.id)}>
+                    Cancelar turno
+                  </button>
+                )}
+              </div>
+            )}
+          </article>
+        ))
       )}
     </div>
   )
