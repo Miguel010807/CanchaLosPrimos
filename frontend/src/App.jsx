@@ -26,9 +26,9 @@ function App() {
       <header className="encabezado">
         <div className="contenedor">
           <a href="#inicio" className="marca">
-            {/* Cuando tengas el logo, guardalo en frontend/public/fotos/logo.png y cambiá "LP" por:
-                <img src="/fotos/logo.png" alt="" /> */}
-            <span className="marca-logo">LP</span>
+            <span className="marca-logo">
+              <img src="/fotos/logo-icono.png" alt="" />
+            </span>
             <span className="marca-nombre">LOS PRIMOS</span>
           </a>
 
